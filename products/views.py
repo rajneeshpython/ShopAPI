@@ -1,7 +1,9 @@
 from rest_framework import viewsets, permissions
-from .models import Category, Brand, Product
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
+from .models import Category, Brand, Product
+from .permissions import IsVendorOrReadOnly, IsOwnerVendor
 from .serializers import CategorySerializer, BrandSerializer, ProductSerializer
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -21,11 +23,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['category', 'brand']
-
-    def get_permissions(self):
-        if self.request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
-            return [permissions.IsAuthenticated()]
-        return [permissions.AllowAny()]
+    permission_classes = [IsVendorOrReadOnly, IsOwnerVendor]
 
     def perform_create(self, serializer):
         serializer.save(vendor=self.request.user)
