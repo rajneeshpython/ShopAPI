@@ -1,5 +1,6 @@
 from rest_framework import viewsets, permissions
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Category, Brand, Product
@@ -21,8 +22,14 @@ class BrandViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductSerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter
+    ]
     filterset_fields = ['category', 'brand']
+    search_fields = ['title', 'description']
+    ordering_fields = ['price', 'created_at']
     permission_classes = [IsVendorOrReadOnly, IsOwnerVendor]
 
     def perform_create(self, serializer):
